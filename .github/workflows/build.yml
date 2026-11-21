@@ -67,7 +67,7 @@ jobs:
 
       - name: Compile
         working-directory: ffmpeg-src
-        run: make -j2 ffmpeg
+        run: make -j2
 
       - name: Collect result
         shell: bash
