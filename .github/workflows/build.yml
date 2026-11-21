@@ -49,6 +49,7 @@ jobs:
             --enable-demuxer=matroska
             --enable-demuxer=concat
             --enable-muxer=webm
+            --enable-bsf=vp9_superframe
             --enable-ffmpeg
           )
 
