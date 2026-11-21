@@ -1,0 +1,84 @@
+
+name: Build Balamb FFmpeg Mini
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux
+            filename: ffmpeg
+          - target: windows
+            filename: ffmpeg.exe
+
+    steps:
+      - name: Install compilers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git make pkg-config nasm \
+            gcc musl-tools mingw-w64
+
+      - name: Download FFmpeg sources
+        run: |
+          git clone --depth 1 --branch n8.0 \
+            https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
+
+      - name: Configure minimal FFmpeg
+        working-directory: ffmpeg-src
+        shell: bash
+        run: |
+          COMMON=(
+            --disable-everything
+            --disable-autodetect
+            --disable-doc
+            --disable-debug
+            --disable-ffprobe
+            --disable-ffplay
+            --disable-network
+            --disable-shared
+            --enable-static
+            --enable-small
+            --enable-protocol=file
+            --enable-demuxer=matroska
+            --enable-demuxer=concat
+            --enable-muxer=webm
+            --enable-ffmpeg
+          )
+
+          if [ "${{ matrix.target }}" = "linux" ]; then
+            ./configure "${COMMON[@]}" \
+              --cc=musl-gcc \
+              --extra-ldflags="-static"
+          else
+            ./configure "${COMMON[@]}" \
+              --target-os=mingw32 \
+              --arch=x86_64 \
+              --enable-cross-compile \
+              --cross-prefix=x86_64-w64-mingw32- \
+              --extra-ldflags="-static"
+          fi
+
+      - name: Compile
+        working-directory: ffmpeg-src
+        run: make -j2 ffmpeg
+
+      - name: Collect result
+        shell: bash
+        run: |
+          mkdir -p output
+          cp "ffmpeg-src/ffmpeg${{ matrix.target == 'windows' && '.exe' || '' }}" \
+             "output/${{ matrix.filename }}"
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: balamb-ffmpeg-${{ matrix.target }}
+          path: output/
+          if-no-files-found: error
