@@ -30,7 +30,7 @@ jobs:
         run: |
           git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
           cd ffmpeg-src
-          git checkout e17628b
+          git checkout e8850bc2a8
           echo "Selected FFmpeg revision:"
           git log -1 --format="%h %s"
 
