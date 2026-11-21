@@ -25,10 +25,15 @@ jobs:
             git make pkg-config nasm \
             gcc musl-tools mingw-w64
 
+      
       - name: Download FFmpeg sources
         run: |
-          git clone --depth 1 --branch n8.0 \
-            https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
+          git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg-src
+          cd ffmpeg-src
+          git checkout e17628b
+          echo "Selected FFmpeg revision:"
+          git log -1 --format="%h %s"
+
 
       - name: Configure minimal FFmpeg
         working-directory: ffmpeg-src
